@@ -1,0 +1,52 @@
+name: "[BUG] Bug Report"
+description: Something in the API is broken or behaving unexpectedly
+title: "[BUG] "
+labels: ["type::bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Before submitting:** check if a similar issue already exists.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+      placeholder: Describe the bug...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: A minimal code snippet or steps that reproduce the issue.
+      render: ts
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: "@deck-shelves/api version"
+      placeholder: "e.g. 0.1.0"
+    validations:
+      required: true
+
+  - type: input
+    id: env
+    attributes:
+      label: Environment
+      description: Node version, bundler (vite/webpack/esbuild), ESM or CJS.
+      placeholder: "e.g. Node 20, Vite 5, ESM"
+    validations:
+      required: false

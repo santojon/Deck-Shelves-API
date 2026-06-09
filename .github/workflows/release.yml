@@ -1,0 +1,87 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  # Required for npm provenance (`publishConfig.provenance` + --provenance).
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile=false
+
+      - name: Typecheck + lint + test
+        run: pnpm run check
+
+      - name: Build (ESM + CJS + types)
+        run: pnpm run build
+
+      - name: Resolve release tag
+        id: tag
+        run: |
+          if [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            TAG="${GITHUB_REF_NAME}"
+          else
+            TAG="v$(node -p "require('./package.json').version")"
+          fi
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+          echo "Release tag: ${TAG}"
+
+      - name: Extract release notes for tag
+        id: notes
+        env:
+          VERSION: ${{ steps.tag.outputs.version }}
+        run: |
+          # Prefer the user-facing RELEASE_NOTES.md; fall back to CHANGELOG.md.
+          NOTES=""
+          if [[ -f "RELEASE_NOTES.md" ]]; then
+            NOTES=$(awk "/^## \\[${VERSION}\\]/{found=1; next} /^## \\[/{if(found) exit} found{print}" RELEASE_NOTES.md | sed '/^$/N;/^\n$/d')
+          fi
+          if [[ -z "$NOTES" && -f "CHANGELOG.md" ]]; then
+            echo "RELEASE_NOTES.md had no section for ${VERSION} — falling back to CHANGELOG.md"
+            NOTES=$(awk "/^## \\[${VERSION}\\]/{found=1; next} /^## \\[/{if(found) exit} found{print}" CHANGELOG.md | sed '/^$/N;/^\n$/d')
+          fi
+          if [[ -z "$NOTES" ]]; then
+            echo "No release notes found for ${VERSION} — generate_release_notes will be used."
+          fi
+          {
+            echo "body<<BODY_EOF"
+            printf '%s\n' "$NOTES"
+            echo "BODY_EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Publish to npm
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: pnpm publish --no-git-checks --access public --provenance
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ github.token }}
+          tag_name: ${{ steps.tag.outputs.tag }}
+          name: "@deck-shelves/api ${{ steps.tag.outputs.tag }}"
+          body: ${{ steps.notes.outputs.body }}
+          generate_release_notes: ${{ steps.notes.outputs.body == '' }}

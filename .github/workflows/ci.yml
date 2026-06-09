@@ -1,0 +1,56 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    # Skip the auto-commit bump on main (bump.yml already validated it),
+    # but always run on PRs, tags, and manual dispatch.
+    if: |
+      github.ref_type == 'tag'
+      || !startsWith(github.event.head_commit.message, 'chore: bump version')
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile=false
+
+      - name: TypeScript check
+        run: pnpm run typecheck
+
+      - name: ESLint (bug catchers)
+        run: pnpm run lint
+
+      - name: Unit tests
+        run: pnpm run test
+
+      - name: Build (ESM + CJS + types)
+        run: pnpm run build
+
+      - name: Pack tarball
+        run: pnpm pack
+
+      - name: Upload package tarball artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: deck-shelves-api-${{ github.sha }}
+          path: "*.tgz"

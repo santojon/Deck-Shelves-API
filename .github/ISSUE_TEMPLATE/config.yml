@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Deck Shelves plugin
+    url: https://github.com/santojon/Deck-Shelves
+    about: Issues with the plugin itself (not the integration API) belong here.
+  - name: Security vulnerability
+    url: https://github.com/santojon/Deck-Shelves-API/security/advisories/new
+    about: Report security issues privately via GitHub Security Advisories.

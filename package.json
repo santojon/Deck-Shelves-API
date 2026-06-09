@@ -1,0 +1,74 @@
+{
+  "name": "@deck-shelves/api",
+  "version": "0.1.0",
+  "description": "Deck Shelves data integration API.",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint \"src/**/*.ts\"",
+    "lint:fix": "eslint --fix \"src/**/*.ts\"",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "pnpm run typecheck && pnpm run lint && pnpm run test",
+    "dev:check": "pnpm run check",
+    "clean": "rm -rf dist *.tgz",
+    "release:dry": "pnpm run clean && pnpm run check && pnpm run build && pnpm pack --dry-run",
+    "release:local": "pnpm run clean && pnpm run check && pnpm run build && pnpm pack",
+    "prepublishOnly": "pnpm run clean && pnpm run check && pnpm run build"
+  },
+  "keywords": [
+    "deck-shelves",
+    "decky-loader",
+    "steam-deck",
+    "steam",
+    "library"
+  ],
+  "author": "Jonathan Santos",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/santojon/Deck-Shelves-API.git"
+  },
+  "bugs": {
+    "url": "https://github.com/santojon/Deck-Shelves-API/issues"
+  },
+  "homepage": "https://github.com/santojon/Deck-Shelves-API#readme",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
+  "devDependencies": {
+    "@typescript-eslint/parser": "^8.18.0",
+    "eslint": "^9.17.0",
+    "jsdom": "^25.0.1",
+    "tsup": "^8.3.5",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "packageManager": "pnpm@10.33.0"
+}

@@ -1,0 +1,159 @@
+name: Version Bump
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Bump type"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    if: >-
+      (github.event_name == 'workflow_dispatch') ||
+      (github.event.pull_request.merged == true &&
+       (startsWith(github.event.pull_request.title, '[FIX]') ||
+        startsWith(github.event.pull_request.title, '[ENHANCEMENT]') ||
+        startsWith(github.event.pull_request.title, '[PERF]') ||
+        startsWith(github.event.pull_request.title, '[QA]') ||
+        startsWith(github.event.pull_request.title, '[REFACTOR]') ||
+        startsWith(github.event.pull_request.title, '[CLEANUP]') ||
+        startsWith(github.event.pull_request.title, '[FEATURE]')))
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.SUBMIT_TOKEN || github.token }}
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile=false
+
+      - name: Determine bump type
+        id: bump_type
+        env:
+          PR_TITLE: "${{ github.event.pull_request.title }}"
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "bump=${{ inputs.bump }}" >> "$GITHUB_OUTPUT"
+          else
+            TITLE="$PR_TITLE"
+            if [[ "$TITLE" == \[REFACTOR\]* ]]; then
+              echo "bump=major" >> "$GITHUB_OUTPUT"
+            elif [[ "$TITLE" == \[FEATURE\]* || "$TITLE" == \[CLEANUP\]* ]]; then
+              echo "bump=minor" >> "$GITHUB_OUTPUT"
+            elif [[ "$TITLE" == \[FIX\]* || "$TITLE" == \[ENHANCEMENT\]* || "$TITLE" == \[PERF\]* || "$TITLE" == \[QA\]* ]]; then
+              echo "bump=patch" >> "$GITHUB_OUTPUT"
+            else
+              echo "❌ PR title must start with [FIX], [ENHANCEMENT], [PERF], [QA], [REFACTOR], [CLEANUP], or [FEATURE]"
+              exit 1
+            fi
+          fi
+
+      - name: Compute new version
+        id: version
+        run: |
+          CURRENT=$(node -p "require('./package.json').version")
+          BUMP="${{ steps.bump_type.outputs.bump }}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+          case "$BUMP" in
+            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH + 1)) ;;
+          esac
+          NEW="${MAJOR}.${MINOR}.${PATCH}"
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          echo "new=$NEW" >> "$GITHUB_OUTPUT"
+          echo "Bumping $CURRENT → $NEW ($BUMP)"
+
+      - name: Update package.json version
+        run: |
+          node -e "
+            const fs = require('fs');
+            const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            pkg.version = '${{ steps.version.outputs.new }}';
+            fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          "
+
+      - name: Update pnpm-lock.yaml version
+        run: pnpm install --lockfile-only
+
+      - name: Update CHANGELOG.md and RELEASE_NOTES.md
+        run: |
+          VERSION="${{ steps.version.outputs.new }}"
+          DATE=$(date +%Y-%m-%d)
+
+          if ! grep -q "^## \[Unreleased\]" CHANGELOG.md; then
+            echo "❌ CHANGELOG.md missing ## [Unreleased] section"
+            exit 1
+          fi
+
+          UNRELEASED_CONTENT=$(awk '/^## \[Unreleased\]/{found=1; next} /^## \[/{exit} found{print}' CHANGELOG.md)
+          TRIMMED=$(echo "$UNRELEASED_CONTENT" | sed '/^[[:space:]]*$/d')
+
+          if [[ -z "$TRIMMED" ]]; then
+            echo "❌ No changes found under ## [Unreleased] in CHANGELOG.md"
+            exit 1
+          fi
+
+          sed -i "s/^## \[Unreleased\]/## [Unreleased]\n\n## [${VERSION}] - ${DATE}/" CHANGELOG.md
+
+          # Promote the user-facing RELEASE_NOTES.md too, if present. Not
+          # fatal when missing/empty — the release workflow falls back to
+          # CHANGELOG.md in that case.
+          if [[ -f "RELEASE_NOTES.md" ]] && grep -q "^## \[Unreleased\]" RELEASE_NOTES.md; then
+            NOTES_CONTENT=$(awk '/^## \[Unreleased\]/{found=1; next} /^## \[/{exit} found{print}' RELEASE_NOTES.md)
+            NOTES_TRIMMED=$(echo "$NOTES_CONTENT" | sed '/^[[:space:]]*$/d')
+            if [[ -n "$NOTES_TRIMMED" ]]; then
+              sed -i "s/^## \[Unreleased\]/## [Unreleased]\n\n## [${VERSION}] - ${DATE}/" RELEASE_NOTES.md
+            else
+              echo "⚠️ RELEASE_NOTES.md [Unreleased] is empty — skipping promote (release falls back to CHANGELOG.md)"
+            fi
+          fi
+
+      - name: Typecheck + lint + test
+        run: pnpm run check
+
+      - name: Configure git author
+        run: |
+          git config user.name "${{ github.actor }}"
+          git config user.email "${{ github.actor }}@users.noreply.github.com"
+
+      - name: Stage version files
+        run: |
+          git add package.json pnpm-lock.yaml CHANGELOG.md
+          [[ -f RELEASE_NOTES.md ]] && git add RELEASE_NOTES.md || true
+
+      - name: Commit bump
+        run: |
+          VERSION="${{ steps.version.outputs.new }}"
+          git commit -m "chore: bump version to v${VERSION}"
+
+      - name: Tag commit
+        run: |
+          VERSION="${{ steps.version.outputs.new }}"
+          git tag "v${VERSION}"
+
+      - name: Push branch + tag
+        run: |
+          VERSION="${{ steps.version.outputs.new }}"
+          git push origin main
+          git push origin "v${VERSION}" || git push origin --tags

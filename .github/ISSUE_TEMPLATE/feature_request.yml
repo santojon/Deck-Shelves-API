@@ -1,0 +1,33 @@
+name: "[FEATURE] Feature Request"
+description: Suggest a new capability for the API surface
+title: "[FEATURE] "
+labels: ["type::feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Before submitting:** check if a similar request already exists.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / use case
+      description: What are you trying to do that the current API doesn't support?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed API
+      description: Sketch the method/type you'd like (signatures welcome).
+      render: ts
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: false

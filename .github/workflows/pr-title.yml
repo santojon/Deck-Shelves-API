@@ -1,0 +1,26 @@
+name: PR Title Check
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  check-title:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR title prefix
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          echo "PR title: $PR_TITLE"
+          if [[ "$PR_TITLE" =~ ^\[(FIX|ENHANCEMENT|PERF|QA|REFACTOR|CLEANUP|FEATURE)\] ]]; then
+            echo "✅ PR title has a valid tag."
+          else
+            echo "❌ PR title must start with one of:"
+            echo "   [FIX] [ENHANCEMENT] [PERF] [QA] [REFACTOR] [CLEANUP] [FEATURE]"
+            echo "   These tags drive the automatic version bump (bump.yml)."
+            exit 1
+          fi
