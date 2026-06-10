@@ -22,12 +22,16 @@
 
 ## Changelog
 
-<!-- Required. Add entries under ## [Unreleased] in CHANGELOG.md (technical detail). -->
+<!-- AUTOFILL:CHANGELOG:START -->
+<!-- Required. Auto-filled from your CHANGELOG.md ## [Unreleased] entries (technical detail). -->
+<!-- AUTOFILL:CHANGELOG:END -->
 
 ## Release Notes
 
-<!-- Required. Add entries under ## [Unreleased] in RELEASE_NOTES.md (user-facing). -->
+<!-- AUTOFILL:RELEASE_NOTES:START -->
+<!-- Required. Auto-filled from your RELEASE_NOTES.md ## [Unreleased] entries (user-facing). -->
 <!-- Release bodies are extracted from this file at tag time. -->
+<!-- AUTOFILL:RELEASE_NOTES:END -->
 
 ## Type of Change
 
