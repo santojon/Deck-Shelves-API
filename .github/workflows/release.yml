@@ -8,7 +8,9 @@ on:
 
 permissions:
   contents: write
-  # Required for npm provenance (`publishConfig.provenance` + --provenance).
+  # Required for npm Trusted Publishing (OIDC). The npm CLI exchanges this
+  # short-lived id-token with the registry instead of a long-lived NPM_TOKEN,
+  # and generates build provenance automatically.
   id-token: write
 
 jobs:
@@ -72,10 +74,17 @@ jobs:
             echo "BODY_EOF"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Publish to npm
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: pnpm publish --no-git-checks --access public --provenance
+      # Trusted Publishing needs the OIDC support shipped in npm >= 11.5.1.
+      # Node 20 bundles an older npm, so upgrade the CLI before publishing.
+      - name: Upgrade npm (OIDC trusted publishing support)
+        run: npm install -g npm@latest
+
+      # No NODE_AUTH_TOKEN: npm exchanges the workflow's OIDC id-token with
+      # the registry. Requires a Trusted Publisher configured on npmjs.com
+      # for this repo + workflow. Provenance is attached automatically.
+      # Build is done above with pnpm; only the publish uses the npm CLI.
+      - name: Publish to npm (Trusted Publishing)
+        run: npm publish --access public --ignore-scripts
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

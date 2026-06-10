@@ -1,0 +1,116 @@
+name: Enforce Repo Merge Settings
+
+# Settings-as-code, mirrored from the Deck Shelves repo. Runs weekly (and on
+# demand) to keep merge settings, labels, and branch protection in a known
+# state so they don't drift via the GitHub UI.
+#
+# Requires an `ADMIN_GH_TOKEN` secret (a PAT with admin rights on this repo).
+# The default `github.token` (GITHUB_TOKEN) cannot change repo settings or
+# branch protection, so without the secret the admin steps no-op with a
+# warning (the job is `continue-on-error`).
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 8 * * 1" # Every Monday at 08:00 UTC
+
+permissions: {}
+
+jobs:
+  enforce:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Ensure squash merge and delete-branch-on-merge
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.ADMIN_GH_TOKEN || github.token }}
+          script: |
+            const { owner, repo } = context.repo;
+            const repoResp = await github.rest.repos.get({ owner, repo });
+            const current = repoResp.data;
+            const updates = {};
+            if (current.allow_squash_merge !== true) updates.allow_squash_merge = true;
+            if (current.allow_merge_commit !== false) updates.allow_merge_commit = false;
+            if (current.allow_rebase_merge !== false) updates.allow_rebase_merge = false;
+            if (current.delete_branch_on_merge !== true) updates.delete_branch_on_merge = true;
+            if (Object.keys(updates).length === 0) {
+              core.info('Repository merge settings already configured.');
+            } else {
+              await github.rest.repos.update({ owner, repo, ...updates });
+              core.info('Updated repository settings: ' + JSON.stringify(updates));
+            }
+
+      - name: Sync labels (create required, delete deprecated)
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.ADMIN_GH_TOKEN || github.token }}
+          script: |
+            const { owner, repo } = context.repo;
+
+            // Lean set — only what the issue templates + PR flow use.
+            const required = [
+              { name: "type::bug",         color: "d73a4a", description: "Something isn't working" },
+              { name: "type::feature",     color: "0E8A16", description: "New feature or request" },
+              { name: "type::enhancement", color: "a2eeef", description: "Improvement to an existing feature" },
+              { name: "type::duplicated",  color: "cfd3d7", description: "Issue or pull request already exists" },
+              { name: "type::invalid",     color: "e4e669", description: "Not a real issue or doesn't seem right" },
+              { name: "type::wontfix",     color: "ffffff", description: "This will not be worked on" },
+              { name: "area::ci",          color: "000000", description: ".github/ — workflows / CI" },
+              { name: "area::docs",        color: "0075CA", description: "Documentation" },
+            ];
+
+            // Default GitHub labels that don't fit this repo's scheme.
+            const deprecated = ["documentation", "bug", "enhancement"];
+
+            const existing = await github.paginate(github.rest.issues.listLabelsForRepo, { owner, repo, per_page: 100 });
+            const existingMap = new Map(existing.map(l => [l.name, l]));
+
+            for (const label of required) {
+              if (existingMap.has(label.name)) {
+                const cur = existingMap.get(label.name);
+                if (cur.color !== label.color || cur.description !== label.description) {
+                  await github.rest.issues.updateLabel({ owner, repo, name: label.name, color: label.color, description: label.description });
+                  core.info(`Updated label: ${label.name}`);
+                }
+              } else {
+                await github.rest.issues.createLabel({ owner, repo, ...label });
+                core.info(`Created label: ${label.name}`);
+              }
+            }
+
+            for (const name of deprecated) {
+              if (existingMap.has(name)) {
+                await github.rest.issues.deleteLabel({ owner, repo, name });
+                core.info(`Deleted deprecated label: ${name}`);
+              }
+            }
+
+      - name: Ensure branch protection defaults
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.ADMIN_GH_TOKEN || github.token }}
+          script: |
+            const { owner, repo } = context.repo;
+            const branch = (context.payload.repository && context.payload.repository.default_branch) || 'main';
+            // Required status checks are the CI `validate` job and the
+            // `check-title` job (PR Title Check). `strict: true` requires
+            // branches to be up to date before merging. Admins can still
+            // bypass; this just blocks accidental merges of red PRs.
+            try {
+              await github.rest.repos.updateBranchProtection({
+                owner,
+                repo,
+                branch,
+                required_status_checks: {
+                  strict: true,
+                  contexts: ['validate', 'check-title']
+                },
+                enforce_admins: false,
+                required_pull_request_reviews: null,
+                restrictions: null
+              });
+              core.info(`Branch protection for ${branch} ensured.`);
+            } catch (e) {
+              core.warning('Failed to update branch protection: ' + e.message);
+            }
