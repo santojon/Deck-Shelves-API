@@ -1,7 +1,6 @@
 # @deck-shelves/api
 
-TypeScript API for integrating with [Deck Shelves](https://github.com/santojon/Deck-Shelves), a Decky Loader plugin that adds custom game shelves to the Steam Deck home screen.
-
+TypeScript API for integrating with [Deck Shelves](https://github.com/santojon/Deck-Shelves).
 ## Install
 
 ```bash
