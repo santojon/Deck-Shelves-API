@@ -5,6 +5,8 @@ the GitHub Release body at tag time.
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-06-10
+
 - Set up the package for npm publishing: dual ESM/CJS builds, automated CI,
   and a tag-driven release pipeline.
 
