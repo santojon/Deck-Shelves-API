@@ -108,9 +108,9 @@ Releases are automated — maintainers do not publish by hand:
 2. `bump.yml` computes the new version from the PR title, updates
    `package.json` + `CHANGELOG.md` + `RELEASE_NOTES.md`, commits, and pushes a
    `vX.Y.Z` tag.
-3. The `vX.Y.Z` tag triggers `release.yml`, which builds, publishes to npm
-   (with provenance), and cuts a GitHub Release using the notes for that
-   version.
+3. The `vX.Y.Z` tag triggers `release.yml`, which builds, publishes to npm via
+   **Trusted Publishing (OIDC)** with automatic provenance, and cuts a GitHub
+   Release using the notes for that version.
 
 To preview the publishable artifact locally without releasing:
 
