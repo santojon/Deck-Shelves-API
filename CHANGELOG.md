@@ -7,28 +7,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **API v4 — 4 new descriptor types** (additive, v3 consumers stay binary-compatible). `DeckShelvesPublicAPI.version` bumped `3 → 4`. v4 was never split into a separate v4 / v5 release: every additive surface that had been queued (search + side-menu providers AND context / widget / shelf-renderer / metadata providers) rolls up into this single bump.
+ - **`ContextProviderDescriptor`** + `registerContextProvider` / `getRegisteredContextProviders`. Companion plugins expose context signals (Bluetooth headset connected, specific game running, custom session predicates) via `snapshot()` + `subscribe(cb)`. Host consumes for shelf visibility rules and profile auto-switch.
+ - **`WidgetProviderDescriptor`** + `registerWidgetProvider` / `getRegisteredWidgetProviders`. Runtime widgets that render non-game content. `render({ width, height })`; optional `refreshPolicy: number | "focus" | null`; optional `skeleton()` for first-paint.
+ - **`ShelfRendererDescriptor`** + `registerShelfRenderer` / `getRegisteredShelfRenderers`. External render modes for the per-shelf `renderMode` dropdown. `layout({ items, focusedAppid, cardWidth, cardHeight, featured })`; optional `cardMode` + `virtualiseAfter`.
+ - **`MetadataProviderDescriptor`** + `registerMetadataProvider` / `getRegisteredMetadataProviders`. Augments app metadata (ratings, playtime estimates, completion %, achievement counts, emulator tags). `fields: ReadonlyArray<string>` advertises what the provider populates; `resolve(appids, signal)` batches lookups with host-cancellation support.
+- **Built-in Quick Search now lives in the same `searchProviders` registry external plugins write to.** No surface change for consumers of `@deck-shelves/api` — the descriptor (`id: "deck-shelves.shelves"`, `priority: 100`) is registered through the host's internal-bootstrap path. Effect on external plugins: `api.getRegisteredSearchProviders()` returns the built-in alongside any provider your plugin registered, sorted by priority desc. Collision detection works for the built-in id the same way as for any other registration.
+- **`pnpm run upgrade` script** (`api/package.json`) + **self-contained helper** at [`scripts/upgrade-pnpm.cjs`](scripts/upgrade-pnpm.cjs). Mirrors the helper at the plugin repo root so the API package stays usable by downstream contributors who clone only the `Deck-Shelves-API` repo (which is the published surface — separate from the plugin). 4-step fallback chain: `pnpm self-update` (covers Homebrew / asdf / npm installs in-place), Corepack from PATH or `node`'s bundled location, `brew upgrade pnpm`, then `npm install -g pnpm@latest --force`. The parent repo's `pnpm run upgrade:api` now delegates to this self-contained script (was previously a thin wrapper that loaded `../scripts/build/upgrade-pnpm.cjs` from the plugin tree).
+- **README rewrite (`api/README.md`).** Now mirrors the main Deck Shelves README layout: centered logo-block, comprehensive badge bar (npm version + total / monthly downloads, types, bundle size via bundlephobia, CI + release workflows, license, Node compat, platform, plugin host, sponsor + Ko-fi), and an 11-row Capability matrix mapping every surface (regular + smart shelf sources, filter types, sort options, importers/exporters, saved filters, search providers, side-menu providers, focus tracking, asset URLs, env probes) to its `register*` / snapshot / subscribe method names. Existing how-it-works + direct-API + version-policy + development sections preserved.
+- **Surface v4 — Search providers** (part of the same v3 → v4 bump above). New `registerSearchProvider(d: SearchProviderDescriptor)` registration method on `DeckShelvesPublicAPI`, plus `getRegisteredSearchProviders()` accessor. Descriptor shape: `{ id, displayName, priority?, search(query, limit): Promise<SearchHit[]> }`. `SearchHit`: `{ id, appid?, title?, subtitle?, score?, onActivate?() }`. Providers ranked by `priority` desc; ties broken by `score` desc. Hits with both `appid` and `onActivate` prefer `onActivate` so custom routing wins.
+- **Surface v4 — Side-menu providers** (part of the same v3 → v4 bump above). New `registerSideMenuProvider(d: SideMenuProviderDescriptor)` + `getRegisteredSideMenuProviders()`. Descriptor: `{ id, displayName, resolve(context: SideMenuContext): SideMenuEntry[] | Promise<SideMenuEntry[]> }`. `SideMenuContext`: `{ shelfId, focusedAppid }`. `SideMenuEntry`: `{ id, label, category?, icon?, disabled?, onActivate() }`. Entries are grouped under the providing plugin's section in the host's dpad-left side panel.
+- **`@deck-shelves/api`: new descriptor types exported.** `SearchProviderDescriptor`, `SearchHit`, `SideMenuProviderDescriptor`, `SideMenuContext`, `SideMenuEntry`. Existing v3 consumers see no behaviour change; the new methods are only callable after upgrading the type package.
+
+### Notes
+
+- Both surfaces are additive — existing v3 consumers stay binary-compatible. Check `api.version >= 4` before calling the new methods.
+- Stable `id` prefixes recommended (`my-plugin.foo`) so two plugins can't collide on the same descriptor.
+
 ## [0.1.1] - 2026-06-10
 
 ### Added
 
 - pnpm-based tooling: ESLint (bug-catcher rules), Vitest, and a `tsup` dual
-  ESM + CJS + `.d.ts` build.
+ ESM + CJS + `.d.ts` build.
 - GitHub Actions: `ci.yml` (typecheck/lint/test/build/pack), `release.yml`
-  (npm publish with provenance + GitHub Release), `bump.yml` (PR-title-driven
-  version bump), and `pr-title.yml`.
+ (npm publish with provenance + GitHub Release), `bump.yml` (PR-title-driven
+ version bump), and `pr-title.yml`.
 - Project docs: `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`,
-  PR template, and issue templates.
+ PR template, and issue templates.
 
 ### Fixed
 
 - Build now emits a real ESM (`dist/index.js`) **and** CJS (`dist/index.cjs`)
-  bundle plus bundled type declarations, matching the `exports` map. The
-  previous two-`tsc`-pass setup overwrote the ESM output with CJS and never
-  produced the `.mjs` file referenced in `package.json`.
+ bundle plus bundled type declarations, matching the `exports` map. The
+ previous two-`tsc`-pass setup overwrote the ESM output with CJS and never
+ produced the `.mjs` file referenced in `package.json`.
 
 ## [0.1.0]
 
 ### Added
 
 - Initial public API: `register()`, `getApi()`, `isReady()`, and the
-  `DeckShelvesPublicAPI` type contract.
+ `DeckShelvesPublicAPI` type contract.

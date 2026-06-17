@@ -11,7 +11,7 @@ belong in the plugin repo, not here.
 ## Prerequisites
 
 - **Node.js** 20 or later
-- **pnpm** 10 or later (`corepack enable` will provision the pinned version)
+- **pnpm** 10 or later (`corepack enable` will provision the pinned version; if `corepack` isn't on PATH, run `pnpm run upgrade:api` from the repo root — the helper script finds Corepack via Node's bundle and falls back to `npm install -g pnpm@latest`)
 
 ## Supported platforms
 
@@ -33,7 +33,7 @@ Windows**.
 2. Install dependencies:
 
    ```bash
-   corepack enable
+   corepack enable    # if "corepack: command not found", run `pnpm run upgrade:api` from the repo root instead
    pnpm install
    ```
 

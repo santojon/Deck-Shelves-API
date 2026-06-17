@@ -8,7 +8,11 @@
 
 export type Unsubscribe = () => void;
 
-/** Compact snapshot of an app (what shelves render). */
+// PublicAppMeta exposes BOTH naming styles. New consumers should use the
+// camelCase fields (isSteam, playtimeMinutes…); the snake_case aliases
+// mirror Steam's raw AppOverview shape so the runtime adapter can populate
+// them without translation loss when calling internal evaluators that
+// still read raw field names.
 export interface PublicAppMeta {
   appid: number;
   name: string;
@@ -20,6 +24,7 @@ export interface PublicAppMeta {
   isSteam?: boolean;
   deckCompatCategory?: number;
   playtimeMinutes?: number;
+  lastPlayedTimestamp?: number;
   addedTimestamp?: number;
   updatePending?: boolean;
   description?: string;
@@ -27,6 +32,17 @@ export interface PublicAppMeta {
   releaseTimestamp?: number;
   metacriticScore?: number;
   diskUsageBytes?: number;
+  supportsCloud?: boolean;
+  controllerSupport?: number;
+  is_non_steam?: boolean;
+  playtime_forever?: number;
+  last_played?: number;
+  deck_compatibility_category?: number;
+  bCloudAvailable?: boolean;
+  nControllerSupport?: number;
+  app_type?: number;
+  is_installed?: boolean;
+  is_hidden?: boolean;
 }
 
 /** Plain-data shelf snapshot exposed to consumers. */
@@ -78,43 +94,154 @@ export interface PublicSavedSmartFilter {
 
 export interface ExternalShelfSourceDescriptor {
   id: string;
-  label: string;
+  label?: string;
+  displayName?: string;
+  version?: number;
   resolve(limit: number): Promise<number[]> | number[];
 }
 
 export interface SmartShelfSourceDescriptor {
   id: string;
-  label: string;
+  label?: string;
+  displayName?: string;
+  version?: number;
+  category?: string;
+  paramMeta?: Readonly<Record<string, { label: string; min: number; max: number; step: number; unit?: string; }>>;
   resolve(apps: ReadonlyArray<PublicAppMeta>, limit: number, params?: Record<string, unknown>): number[];
   defaultParams?: Record<string, unknown>;
 }
 
 export interface ExternalFilterTypeDescriptor {
   id: string;
-  label: string;
+  label?: string;
+  displayName?: string;
+  version?: number;
+  defaultParams?: Readonly<Record<string, unknown>>;
+  invertible?: boolean;
+  renderEditor?: (props: { params: Readonly<Record<string, unknown>>; onChange: (next: Record<string, unknown>) => void; }) => unknown;
   evaluate(app: PublicAppMeta, params?: Record<string, unknown>): boolean;
 }
 
 export interface ExternalSortOptionDescriptor {
   id: string;
-  label: string;
-  sort(ids: number[], apps: ReadonlyArray<PublicAppMeta>): number[];
+  label?: string;
+  displayName?: string;
+  version?: number;
+  sort(ids: number[] | ReadonlyArray<number>, apps: ReadonlyArray<PublicAppMeta>): number[];
 }
 
 export type ImportTarget = "shelves" | "smart_shelves";
 
 export interface ExternalImportTypeDescriptor {
   id: string;
-  label: string;
+  label?: string;
+  displayName?: string;
+  version?: number;
   target?: ImportTarget;
-  importer(): Promise<unknown> | unknown;
+  fileExtension?: string;
+  icon?: unknown;
+  importer?(): Promise<unknown> | unknown;
+  parse?(raw: string): Promise<unknown>;
+  runImport?(): void | Promise<void>;
 }
 
 export interface ExternalSavedFilterDescriptor {
   id: string;
   name: string;
   description?: string;
-  filterGroup: unknown;
+  version?: number;
+  filterGroup?: unknown;
+  group?: unknown;
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// Search + side-menu providers (new in v4 — opt-in features)
+// ──────────────────────────────────────────────────────────────────────────
+
+export interface SearchProviderDescriptor {
+  id: string;
+  displayName: string;
+  version?: number;
+  priority?: number;
+  search(query: string, limit: number): Promise<SearchHit[]> | SearchHit[];
+}
+
+export interface SearchHit {
+  id: string;
+  appid?: number;
+  title?: string;
+  subtitle?: string;
+  score?: number;
+  onActivate?: () => void;
+}
+
+export interface SideMenuProviderDescriptor {
+  id: string;
+  displayName: string;
+  version?: number;
+  resolve(context: SideMenuContext): Promise<SideMenuEntry[]> | SideMenuEntry[];
+}
+
+export interface SideMenuContext {
+  shelfId: string | null;
+  focusedAppid: number | null;
+}
+
+export interface SideMenuEntry {
+  id: string;
+  label: string;
+  category?: string;
+  /** ReactNode rendered before the label. Kept as `unknown` so this
+   *  package stays React-free. The runtime accepts any ReactNode. */
+  icon?: unknown;
+  disabled?: boolean;
+  onActivate(): void | Promise<void>;
+}
+
+// ──────────────────────────────────────────────────────────────────────────
+// v4 — Context / Widget / ShelfRenderer / Metadata providers
+// ──────────────────────────────────────────────────────────────────────────
+
+export interface ContextProviderDescriptor {
+  id: string;
+  displayName: string;
+  version?: string | number;
+  snapshot(): unknown;
+  subscribe(cb: (value: unknown) => void): () => void;
+}
+
+export interface WidgetProviderDescriptor {
+  id: string;
+  displayName: string;
+  version?: string | number;
+  /** Returns the widget content. Kept as `unknown` so this package
+   *  stays React-free; the runtime accepts any ReactNode. */
+  render(size: { width: number; height: number }): unknown;
+  refreshPolicy?: number | "focus" | null;
+  skeleton?(): unknown;
+}
+
+export interface ShelfRendererDescriptor {
+  id: string;
+  displayName: string;
+  version?: string | number;
+  layout(params: {
+    items: ReadonlyArray<{ appid: number; name?: string }>;
+    focusedAppid: number | null;
+    cardWidth: number;
+    cardHeight: number;
+    featured: boolean;
+  }): unknown;
+  cardMode?: "normal" | "featured" | "compact";
+  virtualiseAfter?: number;
+}
+
+export interface MetadataProviderDescriptor {
+  id: string;
+  displayName: string;
+  version?: string | number;
+  fields: ReadonlyArray<string>;
+  resolve(appids: ReadonlyArray<number>, signal?: AbortSignal): Promise<Record<number, Record<string, unknown>>>;
 }
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -133,9 +260,12 @@ export type AssetType = "hero" | "heroBlur" | "portrait" | "landscape" | "logo" 
 // ──────────────────────────────────────────────────────────────────────────
 
 export interface DeckShelvesPublicAPI {
-  /** API surface version. Bump on every breaking change. v3 is the first
-   *  release of the import + register pattern. */
-  readonly version: 3;
+  /** API surface version. Bump on every breaking change. v3 added the
+   *  import + register pattern; v4 consolidates search + side-menu
+   *  providers AND context / widget / shelf-renderer / metadata
+   *  providers — every additive bump that hadn't shipped yet rolls up
+   *  into a single v4 release. */
+  readonly version: 4;
 
   // --- Registries -------------------------------------------------------
   registerShelfSource(d: ExternalShelfSourceDescriptor): Unsubscribe;
@@ -175,6 +305,22 @@ export interface DeckShelvesPublicAPI {
 
   // --- Environment probes -----------------------------------------------
   hasTabMaster(): boolean;
+
+  // --- Search + side-menu providers (v4, additive) ----------------------
+  registerSearchProvider(d: SearchProviderDescriptor): Unsubscribe;
+  getRegisteredSearchProviders(): ReadonlyArray<SearchProviderDescriptor>;
+  registerSideMenuProvider(d: SideMenuProviderDescriptor): Unsubscribe;
+  getRegisteredSideMenuProviders(): ReadonlyArray<SideMenuProviderDescriptor>;
+
+  // --- v4 surfaces (additive) -------------------------------------------
+  registerContextProvider(d: ContextProviderDescriptor): Unsubscribe;
+  getRegisteredContextProviders(): ReadonlyArray<ContextProviderDescriptor>;
+  registerWidgetProvider(d: WidgetProviderDescriptor): Unsubscribe;
+  getRegisteredWidgetProviders(): ReadonlyArray<WidgetProviderDescriptor>;
+  registerShelfRenderer(d: ShelfRendererDescriptor): Unsubscribe;
+  getRegisteredShelfRenderers(): ReadonlyArray<ShelfRendererDescriptor>;
+  registerMetadataProvider(d: MetadataProviderDescriptor): Unsubscribe;
+  getRegisteredMetadataProviders(): ReadonlyArray<MetadataProviderDescriptor>;
 }
 
 // ──────────────────────────────────────────────────────────────────────────
