@@ -88,6 +88,65 @@ export interface PublicSavedSmartFilter {
   description?: string;
 }
 
+/** A user-saved configuration profile. The internal snapshot payload is
+ *  intentionally omitted from the public projection — consumers receive
+ *  identity + metadata only. */
+export interface PublicProfile {
+  id: string;
+  name: string;
+  /** ISO-8601 timestamp of when the profile was saved. */
+  createdAt: string;
+  /** True when this is the profile currently applied to live settings. */
+  active: boolean;
+}
+
+/** Top-level user settings projection. Booleans + the integrations /
+ *  feature-flag maps. Snapshots intentionally omit shelf / smart-shelf
+ *  / saved-filter lists — those have their own getters (`getShelves()`,
+ *  `getSmartShelves()`, `getSavedFilters()`). */
+export interface PublicSettingsSnapshot {
+  enabled: boolean;
+  hideRecents: boolean;
+  recentsReplaceSource: boolean;
+  hideHomeTabs: boolean;
+  shelfHeroBackground: boolean;
+  globalHeroEnabled: boolean;
+  globalFullPageShelf: boolean;
+  smartShelvesEnabled: boolean;
+  unifiedListEnabled: boolean;
+  forceCssLoaderThemes: boolean;
+  lightModeEnabled: boolean;
+  onlineFeaturesEnabled: boolean;
+  updateNotifyEnabled: boolean;
+  integrationsEnabled: Readonly<Record<string, boolean>>;
+  featureToggles: Readonly<Record<string, boolean>>;
+  activeProfileName: string | null;
+}
+
+/** Runtime environment info — versions + locale + display context.
+ *  Useful for integrations to behave differently across DS releases
+ *  or under desktop vs. gamepad UI. */
+export interface EnvironmentInfo {
+  pluginVersion: string;
+  apiVersion: number;
+  locale: string;
+  isGamepadUi: boolean;
+}
+
+/** Detected state for a third-party integration DS knows about. */
+export interface IntegrationInfo {
+  /** Stable identifier — matches the key under `integrationsEnabled` in
+   *  persisted settings and the descriptor `id` exposed to consumers. */
+  id: string;
+  displayName: string;
+  /** Whether the integration's underlying plugin / surface is present
+   *  on the system. */
+  installed: boolean;
+  /** Whether the user has the integration enabled in DS settings.
+   *  Always true unless the user explicitly opted out. */
+  enabled: boolean;
+}
+
 // ──────────────────────────────────────────────────────────────────────────
 // Registry descriptors
 // ──────────────────────────────────────────────────────────────────────────
@@ -244,6 +303,42 @@ export interface MetadataProviderDescriptor {
   resolve(appids: ReadonlyArray<number>, signal?: AbortSignal): Promise<Record<number, Record<string, unknown>>>;
 }
 
+export interface StatisticsProviderDescriptor {
+  id: string;
+  displayName: string;
+  version?: string | number;
+  /** Optional logical grouping when the host UI wants to bucket entries
+   *  by provider category (e.g. "Library", "Playtime", "Online"). */
+  category?: string;
+  resolve(): Promise<ReadonlyArray<StatisticsEntry>> | ReadonlyArray<StatisticsEntry>;
+}
+
+export interface StatisticsEntry {
+  id: string;
+  label: string;
+  value: string | number;
+  unit?: string;
+  category?: string;
+}
+
+export interface RecommendationProviderDescriptor {
+  id: string;
+  displayName: string;
+  version?: string | number;
+  /** Optional grouping when several providers contribute; the host
+   *  uses this to render section headers. */
+  category?: string;
+  resolve(limit: number, signal?: AbortSignal): Promise<ReadonlyArray<RecommendationEntry>> | ReadonlyArray<RecommendationEntry>;
+}
+
+export interface RecommendationEntry {
+  appid: number;
+  /** Higher score sorts ahead. Defaults to 0 when omitted. */
+  score?: number;
+  /** Human-readable explanation surfaced under the card. */
+  reason?: string;
+}
+
 // ──────────────────────────────────────────────────────────────────────────
 // Focus + asset surface (new in v3)
 // ──────────────────────────────────────────────────────────────────────────
@@ -303,6 +398,18 @@ export interface DeckShelvesPublicAPI {
    *  Loopback (local Steam cache) first, then customimages, then CDN. */
   getAssetUrls(appid: number, type: AssetType): string[];
 
+  // --- Profiles + integrations (additive — no version bump) -------------
+  getProfiles(): ReadonlyArray<PublicProfile>;
+  getActiveProfile(): PublicProfile | null;
+  subscribeProfiles(cb: (profiles: ReadonlyArray<PublicProfile>) => void): Unsubscribe;
+  getIntegrations(): ReadonlyArray<IntegrationInfo>;
+  subscribeIntegrations(cb: (integrations: ReadonlyArray<IntegrationInfo>) => void): Unsubscribe;
+
+  // --- Settings snapshot + environment ----------------------------------
+  getSettingsSnapshot(): PublicSettingsSnapshot;
+  subscribeSettingsSnapshot(cb: (snapshot: PublicSettingsSnapshot) => void): Unsubscribe;
+  getEnvironment(): EnvironmentInfo;
+
   // --- Environment probes -----------------------------------------------
   hasTabMaster(): boolean;
 
@@ -321,6 +428,11 @@ export interface DeckShelvesPublicAPI {
   getRegisteredShelfRenderers(): ReadonlyArray<ShelfRendererDescriptor>;
   registerMetadataProvider(d: MetadataProviderDescriptor): Unsubscribe;
   getRegisteredMetadataProviders(): ReadonlyArray<MetadataProviderDescriptor>;
+
+  registerStatisticsProvider(d: StatisticsProviderDescriptor): Unsubscribe;
+  getRegisteredStatisticsProviders(): ReadonlyArray<StatisticsProviderDescriptor>;
+  registerRecommendationProvider(d: RecommendationProviderDescriptor): Unsubscribe;
+  getRegisteredRecommendationProviders(): ReadonlyArray<RecommendationProviderDescriptor>;
 }
 
 // ──────────────────────────────────────────────────────────────────────────

@@ -21,7 +21,7 @@
 
 TypeScript API for integrating with [Deck Shelves](https://github.com/santojon/Deck-Shelves) — a Decky plugin that injects configurable shelves into the Steam Deck home screen.
 
-External plugins register sources, smart sources, filter types, sort options, import flows, saved filters, search providers and side-menu entries through this surface; Deck Shelves consumes the registrations as if they were first-party.
+External plugins register sources, smart sources, filter types, sort options, import flows, saved filters, search providers, side-menu entries, context / widget / shelf-renderer / metadata / statistics / recommendation providers through this surface; Deck Shelves consumes the registrations as if they were first-party. Consumers can also read profiles, integrations, settings snapshots and environment info, and react to host load/unload via `onReady` / `onTeardown`.
 
 ## Install
 
@@ -95,13 +95,19 @@ The returned `Unsubscribe` works regardless of which case applied.
 | Saved filters          | `registerSavedFilter`               | `getSavedFilters`         | `subscribeSavedFilters`    |
 | Search providers (v4)  | `registerSearchProvider`            | `getRegisteredSearchProviders` | —                     |
 | Side-menu entries (v4) | `registerSideMenuProvider`          | `getRegisteredSideMenuProviders` | —                   |
-| Context providers (v5) | `registerContextProvider`           | `getRegisteredContextProviders` | —                    |
-| Widget providers (v5)  | `registerWidgetProvider`            | `getRegisteredWidgetProviders`  | —                    |
-| Shelf renderers (v5)   | `registerShelfRenderer`             | `getRegisteredShelfRenderers`   | —                    |
-| Metadata providers (v5)| `registerMetadataProvider`          | `getRegisteredMetadataProviders`| —                    |
+| Context providers (v4) | `registerContextProvider`           | `getRegisteredContextProviders` | —                    |
+| Widget providers (v4)  | `registerWidgetProvider`            | `getRegisteredWidgetProviders`  | —                    |
+| Shelf renderers (v4)   | `registerShelfRenderer`             | `getRegisteredShelfRenderers`   | —                    |
+| Metadata providers (v4)| `registerMetadataProvider`          | `getRegisteredMetadataProviders`| —                    |
+| Statistics providers   | `registerStatisticsProvider`        | `getRegisteredStatisticsProviders` | —                 |
+| Recommendation providers | `registerRecommendationProvider`  | `getRegisteredRecommendationProviders` | —             |
+| Profiles               | —                                   | `getProfiles` / `getActiveProfile` | `subscribeProfiles`  |
+| Integrations           | —                                   | `getIntegrations`         | `subscribeIntegrations`    |
+| Settings snapshot      | —                                   | `getSettingsSnapshot`     | `subscribeSettingsSnapshot`|
 | Focus tracking         | —                                   | `getFocusedCard`          | `subscribeFocusedCard`     |
 | Asset URLs             | `getAssetUrls(appid, type)`         | —                         | —                          |
-| Environment probes     | `hasTabMaster`                      | —                         | —                          |
+| Environment probes     | `getEnvironment` / `hasTabMaster`   | —                         | —                          |
+| Lifecycle helpers      | `onReady(cb)` / `onTeardown(cb)` (package exports) | —          | —                          |
 
 Full surface in [`src/types.ts`](src/types.ts) → `DeckShelvesPublicAPI`.
 
