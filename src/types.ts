@@ -433,6 +433,11 @@ export interface DeckShelvesPublicAPI {
   getRegisteredStatisticsProviders(): ReadonlyArray<StatisticsProviderDescriptor>;
   registerRecommendationProvider(d: RecommendationProviderDescriptor): Unsubscribe;
   getRegisteredRecommendationProviders(): ReadonlyArray<RecommendationProviderDescriptor>;
+
+  /** Register translations for a locale at runtime (external integrations).
+   *  Deep-merges into the locale bundle; never overwrites built-in keys.
+   *  Namespace your keys (e.g. `acme.*`) to avoid cross-plugin collisions. */
+  registerTranslations(locale: string, dict: Record<string, string>): void;
 }
 
 // ──────────────────────────────────────────────────────────────────────────
