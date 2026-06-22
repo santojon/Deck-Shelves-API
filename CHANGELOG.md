@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.0] - 2026-06-22
+
 ### Added
 
 - **Profiles + integrations getters on `DeckShelvesPublicAPI`** (additive, no version bump). New methods: `getProfiles()`, `getActiveProfile()`, `subscribeProfiles(cb)`, `getIntegrations()`, `subscribeIntegrations(cb)`. New public types `PublicProfile` (`id`, `name`, `createdAt`, `active`) and `IntegrationInfo` (`id`, `displayName`, `installed`, `enabled`) projected over the host's `profiles` / `integrationsEnabled` settings fields. Known integrations the host detects: `tabmaster`, `unifideck`, `nonsteambadges`.

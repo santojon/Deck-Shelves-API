@@ -5,6 +5,8 @@ the GitHub Release body at tag time.
 
 ## [Unreleased]
 
+## [4.0.0] - 2026-06-22
+
 - **Profiles + integrations: new getters on the API.** Plugins can read the user's saved profile list and currently-active profile (`getProfiles()`, `getActiveProfile()`, `subscribeProfiles(cb)`), plus the list of integrations Deck Shelves detects (`getIntegrations()`, `subscribeIntegrations(cb)`). Useful when your plugin needs to adapt to whether TabMaster / UnifiDeck / Non-Steam Badges is present, or react to a profile switch. Additive — no version bump.
 - **Statistics + recommendation provider descriptors.** New `registerStatisticsProvider` / `registerRecommendationProvider` registration types for plugins that want to surface playtime stats, library breakdowns, or "what to play next" suggestions. Host UI consumes them in a later release.
 - **Settings snapshot + environment probe.** `getSettingsSnapshot()` returns the top-level toggles + feature-flag map + active-profile name. `getEnvironment()` returns `{ pluginVersion, apiVersion, locale, isGamepadUi }` so your plugin can adapt without reaching into private state.
