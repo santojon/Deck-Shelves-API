@@ -5,6 +5,9 @@ the GitHub Release body at tag time.
 
 ## [Unreleased]
 
+- **Security:** bumped `form-data` to 4.0.6 (resolves CVE-2026-12143, a high-severity CRLF-injection issue in a transitive dev-dependency). Dev-only — no impact on the published API.
+- **Maintenance:** added `pnpm run update` / `update:check` for standalone dependency refreshes, and expanded the test suite (6 → 14) covering the `onReady` / `onTeardown` lifecycle helpers.
+
 ## [4.0.0] - 2026-06-22
 
 - **Profiles + integrations: new getters on the API.** Plugins can read the user's saved profile list and currently-active profile (`getProfiles()`, `getActiveProfile()`, `subscribeProfiles(cb)`), plus the list of integrations Deck Shelves detects (`getIntegrations()`, `subscribeIntegrations(cb)`). Useful when your plugin needs to adapt to whether TabMaster / UnifiDeck / Non-Steam Badges is present, or react to a profile switch. Additive — no version bump.

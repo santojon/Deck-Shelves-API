@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { getApi, isReady, register } from "./index";
+import { getApi, isReady, onReady, onTeardown, register } from "./index";
 import type { DeckShelvesGlobal, DeckShelvesPublicAPI } from "./types";
 
 const PENDING_KEY = Symbol.for("deck-shelves/pending");
@@ -79,5 +79,79 @@ describe("getApi / isReady", () => {
     installDeckShelves(vi.fn());
     expect(isReady()).toBe(true);
     expect(getApi()).not.toBeNull();
+  });
+});
+
+describe("onReady", () => {
+  it("fires on a later microtask (never synchronously) when DS is already loaded", async () => {
+    installDeckShelves(vi.fn());
+    const cb = vi.fn();
+    onReady(cb);
+    expect(cb).not.toHaveBeenCalled();
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(cb).toHaveBeenCalledOnce();
+  });
+
+  it("fires once when the ready event dispatches (DS not yet loaded)", () => {
+    const cb = vi.fn();
+    onReady(cb);
+    expect(cb).not.toHaveBeenCalled();
+    installDeckShelves(vi.fn());
+    globalThis.dispatchEvent?.(new Event("deck-shelves:ready"));
+    expect(cb).toHaveBeenCalledOnce();
+  });
+
+  it("fires at most once even if the ready event dispatches twice", () => {
+    const cb = vi.fn();
+    onReady(cb);
+    installDeckShelves(vi.fn());
+    globalThis.dispatchEvent?.(new Event("deck-shelves:ready"));
+    globalThis.dispatchEvent?.(new Event("deck-shelves:ready"));
+    expect(cb).toHaveBeenCalledOnce();
+  });
+
+  it("does not fire after unsubscribe (pending path)", () => {
+    const cb = vi.fn();
+    const off = onReady(cb);
+    off();
+    installDeckShelves(vi.fn());
+    globalThis.dispatchEvent?.(new Event("deck-shelves:ready"));
+    expect(cb).not.toHaveBeenCalled();
+  });
+
+  it("swallows errors thrown by the callback", () => {
+    const cb = vi.fn(() => { throw new Error("boom"); });
+    onReady(cb);
+    installDeckShelves(vi.fn());
+    expect(() => globalThis.dispatchEvent?.(new Event("deck-shelves:ready"))).not.toThrow();
+    expect(cb).toHaveBeenCalledOnce();
+  });
+});
+
+describe("onTeardown", () => {
+  it("fires the callback on every teardown event (not one-shot)", () => {
+    const cb = vi.fn();
+    const off = onTeardown(cb);
+    globalThis.dispatchEvent?.(new Event("deck-shelves:teardown"));
+    globalThis.dispatchEvent?.(new Event("deck-shelves:teardown"));
+    expect(cb).toHaveBeenCalledTimes(2);
+    off();
+  });
+
+  it("stops firing after unsubscribe", () => {
+    const cb = vi.fn();
+    const off = onTeardown(cb);
+    off();
+    globalThis.dispatchEvent?.(new Event("deck-shelves:teardown"));
+    expect(cb).not.toHaveBeenCalled();
+  });
+
+  it("swallows errors thrown by the callback", () => {
+    const cb = vi.fn(() => { throw new Error("boom"); });
+    const off = onTeardown(cb);
+    expect(() => globalThis.dispatchEvent?.(new Event("deck-shelves:teardown"))).not.toThrow();
+    expect(cb).toHaveBeenCalledOnce();
+    off();
   });
 });
