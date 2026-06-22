@@ -126,9 +126,7 @@ if (isReady()) {
 
 ## Version policy
 
-The `version` field on `DeckShelvesPublicAPI` bumps on every breaking change. Consumers should check `api.version` if they need to gate on a specific surface revision.
-
-`HOST_API_VERSION` ("1.0.0") is also exported as a runtime check — the [shelves-loader](https://github.com/santojon/shelves-loader) standalone host targets the same string.
+The `version` field on `DeckShelvesPublicAPI` bumps on every breaking change (currently `4`). Consumers should check `api.version` if they need to gate on a specific surface revision.
 
 ## Development
 
@@ -146,3 +144,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full workflow and [SECURITY.md](S
 ## License
 
 [MIT](LICENSE) © [santojon](https://github.com/santojon)
+
+## About
+
+Part of [Deck Shelves](https://github.com/santojon/Deck-Shelves), developed by [Jonathan Santos](https://github.com/santojon).
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/santojon)
