@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **`form-data` pinned to `^4.0.6`** via a pnpm `overrides` entry ([`package.json`](package.json)) — resolves [GHSA-hmw2-7cc7-3qxx / CVE-2026-12143](https://github.com/advisories/GHSA-hmw2-7cc7-3qxx) (high: CRLF injection via unescaped multipart field names / filenames), a transitive **dev-dependency** pulled in by the test toolchain (jsdom). `pnpm audit` is clean. No runtime or consumer impact — `form-data` is never bundled into the published package.
+- **`pnpm run update` / `update:check`** ([`package.json`](package.json)) — refresh every dev-dependency to latest (`pnpm update --latest && pnpm install`) or preview outdated ones (`pnpm outdated`), so the package can be kept current standalone (it ships from its own `Deck-Shelves-API` repo).
+- **Expanded test coverage** ([`src/index.test.ts`](src/index.test.ts), 6 → 14 cases) — added `onReady` (microtask path, event path, single-fire, unsubscribe, error-swallow) and `onTeardown` (multi-fire, unsubscribe, error-swallow) suites.
+
 ## [4.0.0] - 2026-06-22
 
 ### Added
