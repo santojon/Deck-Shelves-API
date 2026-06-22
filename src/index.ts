@@ -38,6 +38,7 @@ export * from "./types";
  *  consumers and keep the global namespace clean. */
 const PENDING_KEY = Symbol.for("deck-shelves/pending");
 const READY_EVENT = "deck-shelves:ready";
+const TEARDOWN_EVENT = "deck-shelves:teardown";
 
 type PendingEntry = {
   integration: DeckShelvesIntegration;
@@ -107,4 +108,42 @@ export function getApi(): DeckShelvesGlobal["api"] | null {
 /** True iff Deck Shelves is loaded and the global has been installed. */
 export function isReady(): boolean {
   return getDeckShelves() !== null;
+}
+
+/** Fires `cb` once when Deck Shelves is ready. If DS is already loaded
+ *  the callback fires on the next microtask. Returns an unsubscribe
+ *  function (no-op once the callback has fired). */
+export function onReady(cb: (api: DeckShelvesGlobal["api"]) => void): Unsubscribe {
+  let fired = false;
+  const fire = (api: DeckShelvesGlobal["api"]) => {
+    if (fired) return;
+    fired = true;
+    try { cb(api); } catch {}
+  };
+  const ds = getDeckShelves();
+  if (ds) {
+    Promise.resolve().then(() => fire(ds.api));
+    return () => { fired = true; };
+  }
+  const handler = () => {
+    const ds2 = getDeckShelves();
+    if (ds2) fire(ds2.api);
+    try { (globalThis as typeof window).removeEventListener?.(READY_EVENT, handler); } catch {}
+  };
+  try { (globalThis as typeof window).addEventListener?.(READY_EVENT, handler); } catch {}
+  return () => {
+    fired = true;
+    try { (globalThis as typeof window).removeEventListener?.(READY_EVENT, handler); } catch {}
+  };
+}
+
+/** Fires `cb` whenever Deck Shelves tears down (plugin uninstall, hot
+ *  reload, settings reset). Re-registers should use `onReady` to
+ *  re-attach. Returns an unsubscribe function. */
+export function onTeardown(cb: () => void): Unsubscribe {
+  const handler = () => { try { cb(); } catch {} };
+  try { (globalThis as typeof window).addEventListener?.(TEARDOWN_EVENT, handler); } catch {}
+  return () => {
+    try { (globalThis as typeof window).removeEventListener?.(TEARDOWN_EVENT, handler); } catch {}
+  };
 }

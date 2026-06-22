@@ -1,6 +1,6 @@
 {
   "name": "@deck-shelves/api",
-  "version": "0.1.1",
+  "version": "3.0.0",
   "description": "Deck Shelves data integration API.",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -23,6 +23,7 @@
     "node": ">=20"
   },
   "scripts": {
+    "upgrade": "node scripts/upgrade-pnpm.cjs && pnpm --version",
     "build": "tsup",
     "typecheck": "tsc --noEmit",
     "lint": "eslint \"src/**/*.ts\"",

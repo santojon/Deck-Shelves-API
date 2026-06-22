@@ -11,7 +11,7 @@ function clearState() {
 
 function installDeckShelves(register: DeckShelvesGlobal["register"]) {
   (globalThis as unknown as { deckShelves: DeckShelvesGlobal }).deckShelves = {
-    version: 3,
+    version: 4,
     api: {} as DeckShelvesPublicAPI,
     register,
   };
