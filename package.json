@@ -1,6 +1,6 @@
 {
   "name": "@deck-shelves/api",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Deck Shelves data integration API.",
   "type": "module",
   "main": "./dist/index.cjs",

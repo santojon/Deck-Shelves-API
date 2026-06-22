@@ -5,6 +5,8 @@ the GitHub Release body at tag time.
 
 ## [Unreleased]
 
+## [4.0.1] - 2026-06-22
+
 - **Security:** bumped `form-data` to 4.0.6 (resolves CVE-2026-12143, a high-severity CRLF-injection issue in a transitive dev-dependency). Dev-only — no impact on the published API.
 - **Maintenance:** added `pnpm run update` / `update:check` for standalone dependency refreshes, and expanded the test suite (6 → 14) covering the `onReady` / `onTeardown` lifecycle helpers.
 

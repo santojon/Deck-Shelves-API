@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [4.0.1] - 2026-06-22
+
 ### Added
 
 - **`form-data` pinned to `^4.0.6`** via a pnpm `overrides` entry ([`package.json`](package.json)) — resolves [GHSA-hmw2-7cc7-3qxx / CVE-2026-12143](https://github.com/advisories/GHSA-hmw2-7cc7-3qxx) (high: CRLF injection via unescaped multipart field names / filenames), a transitive **dev-dependency** pulled in by the test toolchain (jsdom). `pnpm audit` is clean. No runtime or consumer impact — `form-data` is never bundled into the published package.
