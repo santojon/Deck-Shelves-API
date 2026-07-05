@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Export / import handler descriptors** (additive — no version bump; v4 consumers stay binary-compatible). New `ExportHandlerDescriptor` / `ImportHandlerDescriptor` types + `registerExportHandler` / `registerImportHandler` (+ `getRegisteredExportHandlers` / `getRegisteredImportHandlers`) on `DeckShelvesPublicAPI` ([`src/types.ts`](src/types.ts)). A plugin offers "Export to format X" / "Import from format Y" by translating between the host's snapshot JSON — a serialized bundle of shelves, smart shelves, saved filters and saved smart filters — and its own format. Both sides exchange the snapshot as a JSON string, so no host types leak and the round-trip stays lossless: `export(snapshotJson)` returns your format's text; `import(raw)` returns a snapshot JSON string the host applies. Feature-detect (`typeof api.registerExportHandler === "function"`) until tagged.
+
 ## [4.0.1] - 2026-06-22
 
 ### Added

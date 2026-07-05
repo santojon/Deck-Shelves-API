@@ -34,7 +34,7 @@
     "test:watch": "vitest",
     "check": "pnpm run typecheck && pnpm run lint && pnpm run test",
     "dev:check": "pnpm run check",
-    "clean": "rm -rf dist *.tgz",
+    "clean": "node scripts/clean.mjs",
     "release:dry": "pnpm run clean && pnpm run check && pnpm run build && pnpm pack --dry-run",
     "release:local": "pnpm run clean && pnpm run check && pnpm run build && pnpm pack",
     "prepublishOnly": "pnpm run clean && pnpm run check && pnpm run build"
