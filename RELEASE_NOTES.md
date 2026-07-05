@@ -5,6 +5,8 @@ the GitHub Release body at tag time.
 
 ## [Unreleased]
 
+## [4.0.2] - 2026-07-05
+
 - **Register your own export / import formats.** New `registerExportHandler` / `registerImportHandler` let your plugin add "Export to format X" / "Import from format Y" for Deck Shelves data (shelves, smart shelves, saved filters). You translate between the host's snapshot JSON and your own format; the transfer stays lossless. Additive — no version bump; feature-detect until it ships in a tagged release.
 
 ## [4.0.1] - 2026-06-22
