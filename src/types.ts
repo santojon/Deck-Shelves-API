@@ -213,6 +213,30 @@ export interface ExternalSavedFilterDescriptor {
   group?: unknown;
 }
 
+// Portable export / import handlers. A handler converts between Deck Shelves'
+// snapshot JSON (a serialized bundle of shelves / smart shelves / saved
+// filters / saved smart filters) and its own format, so a plugin can offer
+// "Export to format X" / "Import from format Y". Format-agnostic — both sides
+// exchange the snapshot as a JSON string, keeping the round-trip lossless.
+
+export interface ExportHandlerDescriptor {
+  id: string;
+  displayName: string;
+  version?: number;
+  fileExtension?: string;
+  icon?: unknown;
+  export(snapshotJson: string): string | Promise<string>;
+}
+
+export interface ImportHandlerDescriptor {
+  id: string;
+  displayName: string;
+  version?: number;
+  fileExtension?: string;
+  icon?: unknown;
+  import(raw: string): string | Promise<string>;
+}
+
 // ──────────────────────────────────────────────────────────────────────────
 // Search + side-menu providers (new in v4 — opt-in features)
 // ──────────────────────────────────────────────────────────────────────────
@@ -369,6 +393,11 @@ export interface DeckShelvesPublicAPI {
   registerSortOption(d: ExternalSortOptionDescriptor): Unsubscribe;
   registerImportType(d: ExternalImportTypeDescriptor): Unsubscribe;
   registerSavedFilter(d: ExternalSavedFilterDescriptor): Unsubscribe;
+  // Portable export / import handlers (additive — no version bump).
+  registerExportHandler(d: ExportHandlerDescriptor): Unsubscribe;
+  registerImportHandler(d: ImportHandlerDescriptor): Unsubscribe;
+  getRegisteredExportHandlers(): ReadonlyArray<ExportHandlerDescriptor>;
+  getRegisteredImportHandlers(): ReadonlyArray<ImportHandlerDescriptor>;
 
   getRegisteredSources(): ReadonlyArray<ExternalShelfSourceDescriptor>;
   getRegisteredSmartSources(): ReadonlyArray<SmartShelfSourceDescriptor>;
