@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Built-in catalogue discovery: `listTriggerCatalog()`, `listShelfTemplates()`
+  and `listShortcuts()`, with the new `PublicTriggerKind`, `PublicShelfTemplate`
+  and `PublicShortcut` types. Read-only — integrations can build on the same
+  trigger kinds, templates and gamepad shortcuts Deck Shelves ships.
+
 ## [4.0.2] - 2026-07-05
 
 ### Added

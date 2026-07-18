@@ -88,6 +88,42 @@ export interface PublicSavedSmartFilter {
   description?: string;
 }
 
+/** A built-in visibility / profile-trigger rule kind (see `listTriggerCatalog`). */
+export interface PublicTriggerKind {
+  /** Rule kind id, e.g. "battery", "weekend", "gameRunning". */
+  kind: string;
+  /** Category id: "time" | "session" | "power" | "connectivity" | "display" | "perf". */
+  category: string;
+  /** i18n key for the category label. */
+  categoryTitleKey: string;
+  /** Default params seeded when the rule is added. */
+  defaults?: Readonly<Record<string, unknown>>;
+  /** True when the kind can be inverted (kind ⇄ its negation). */
+  invertible: boolean;
+}
+
+/** A built-in shelf template (see `listShelfTemplates`). */
+export interface PublicShelfTemplate {
+  id: string;
+  /** i18n key for the template title. */
+  titleKey: string;
+  /** "status" | "time" | "platform" | "online". */
+  category: string;
+  requiresOnline: boolean;
+  defaultSort?: string;
+  source: PublicShelfSource;
+}
+
+/** A built-in gamepad shortcut / button binding (see `listShortcuts`). */
+export interface PublicShortcut {
+  /** Action id, e.g. "navSearch", "cardQuickLaunch". */
+  action: string;
+  /** Default combo, e.g. "L1+R1", "DPAD_RIGHT+DPAD_RIGHT"; null if unbound. */
+  defaultCombo: string | null;
+  /** Current user-configured combo (falls back to the default). */
+  combo: string | null;
+}
+
 /** A user-saved configuration profile. The internal snapshot payload is
  *  intentionally omitted from the public projection — consumers receive
  *  identity + metadata only. */
@@ -405,6 +441,15 @@ export interface DeckShelvesPublicAPI {
   getRegisteredSortOptions(): ReadonlyArray<ExternalSortOptionDescriptor>;
   getRegisteredImportTypes(): ReadonlyArray<ExternalImportTypeDescriptor>;
   getRegisteredImportTypesForTarget(target: ImportTarget): ReadonlyArray<ExternalImportTypeDescriptor>;
+
+  // --- Built-in catalogues (discover what DS ships) ---------------------
+  /** Every built-in visibility / profile-trigger rule kind, with its category
+   *  and default params — build UI on top of the same trigger vocabulary. */
+  listTriggerCatalog(): ReadonlyArray<PublicTriggerKind>;
+  /** Every built-in shelf template (status / time / platform / online). */
+  listShelfTemplates(): ReadonlyArray<PublicShelfTemplate>;
+  /** Every built-in gamepad shortcut with its default + current combo. */
+  listShortcuts(): ReadonlyArray<PublicShortcut>;
 
   // --- Snapshots + subscriptions ----------------------------------------
   getShelves(): ReadonlyArray<PublicShelf>;
