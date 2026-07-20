@@ -76,8 +76,10 @@ jobs:
 
       # Trusted Publishing needs the OIDC support shipped in npm >= 11.5.1.
       # Node 20 bundles an older npm, so upgrade the CLI before publishing.
+      # Pin to the 11.x line: npm@latest (12+) requires Node 22+, which this job
+      # is not on (EBADENGINE); npm 11.x has OIDC and supports Node ^20.17.0.
       - name: Upgrade npm (OIDC trusted publishing support)
-        run: npm install -g npm@latest
+        run: npm install -g npm@11
 
       # No NODE_AUTH_TOKEN: npm exchanges the workflow's OIDC id-token with
       # the registry. Requires a Trusted Publisher configured on npmjs.com
