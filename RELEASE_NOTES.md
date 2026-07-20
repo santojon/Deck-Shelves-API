@@ -5,6 +5,8 @@ the GitHub Release body at tag time.
 
 ## [Unreleased]
 
+## [4.0.3] - 2026-07-20
+
 - **Discover what Deck Shelves ships.** New read-only `listTriggerCatalog()`, `listShelfTemplates()` and `listShortcuts()` let your plugin enumerate the trigger kinds (with categories + whether each inverts), shelf templates and gamepad shortcuts Deck Shelves provides, so you can build on them. Additive; feature-detect until it ships in a tagged release.
 - **Know the host OS.** `getEnvironment().os` now reports the operating system (`"SteamOS"` / `"Windows"` / `"macOS"` / `"Linux"`, best-effort) so integrations can adapt per platform. Additive.
 
