@@ -7,11 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Built-in catalogue discovery: `listTriggerCatalog()`, `listShelfTemplates()`
+  and `listShortcuts()`, with the new `PublicTriggerKind`, `PublicShelfTemplate`
+  and `PublicShortcut` types. Read-only — integrations can build on the same
+  trigger kinds, templates and gamepad shortcuts Deck Shelves ships.
+- `EnvironmentInfo.os` — `getEnvironment()` now reports a best-effort host OS
+  (`"SteamOS"` | `"Windows"` | `"macOS"` | `"Linux"`; `undefined` when it can't
+  be determined), so integrations can branch per platform. Additive (optional field).
+- `PublicTriggerKind.category` now documents `"peripherals"` (the controller /
+  headphones / Bluetooth-device trigger kinds) alongside `time` / `session` /
+  `power` / `connectivity` / `display` / `perf`.
+
 ## [4.0.2] - 2026-07-05
 
 ### Added
 
-- **Export / import handler descriptors** (additive — no version bump; v4 consumers stay binary-compatible). New `ExportHandlerDescriptor` / `ImportHandlerDescriptor` types + `registerExportHandler` / `registerImportHandler` (+ `getRegisteredExportHandlers` / `getRegisteredImportHandlers`) on `DeckShelvesPublicAPI` ([`src/types.ts`](src/types.ts)). A plugin offers "Export to format X" / "Import from format Y" by translating between the host's snapshot JSON — a serialized bundle of shelves, smart shelves, saved filters and saved smart filters — and its own format. Both sides exchange the snapshot as a JSON string, so no host types leak and the round-trip stays lossless: `export(snapshotJson)` returns your format's text; `import(raw)` returns a snapshot JSON string the host applies. Feature-detect (`typeof api.registerExportHandler === "function"`) until tagged.
+- **Export / import handler descriptors** (additive; v4 consumers stay binary-compatible). New `ExportHandlerDescriptor` / `ImportHandlerDescriptor` types + `registerExportHandler` / `registerImportHandler` (+ `getRegisteredExportHandlers` / `getRegisteredImportHandlers`) on `DeckShelvesPublicAPI` ([`src/types.ts`](src/types.ts)). A plugin offers "Export to format X" / "Import from format Y" by translating between the host's snapshot JSON — a serialized bundle of shelves, smart shelves, saved filters and saved smart filters — and its own format. Both sides exchange the snapshot as a JSON string, so no host types leak and the round-trip stays lossless: `export(snapshotJson)` returns your format's text; `import(raw)` returns a snapshot JSON string the host applies. Feature-detect (`typeof api.registerExportHandler === "function"`) until tagged.
 
 ## [4.0.1] - 2026-06-22
 
@@ -25,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Profiles + integrations getters on `DeckShelvesPublicAPI`** (additive, no version bump). New methods: `getProfiles()`, `getActiveProfile()`, `subscribeProfiles(cb)`, `getIntegrations()`, `subscribeIntegrations(cb)`. New public types `PublicProfile` (`id`, `name`, `createdAt`, `active`) and `IntegrationInfo` (`id`, `displayName`, `installed`, `enabled`) projected over the host's `profiles` / `integrationsEnabled` settings fields. Known integrations the host detects: `tabmaster`, `unifideck`, `nonsteambadges`.
+- **Profiles + integrations getters on `DeckShelvesPublicAPI`** (additive). New methods: `getProfiles()`, `getActiveProfile()`, `subscribeProfiles(cb)`, `getIntegrations()`, `subscribeIntegrations(cb)`. New public types `PublicProfile` (`id`, `name`, `createdAt`, `active`) and `IntegrationInfo` (`id`, `displayName`, `installed`, `enabled`) projected over the host's `profiles` / `integrationsEnabled` settings fields. Known integrations the host detects: `tabmaster`, `unifideck`, `nonsteambadges`.
 - **Statistics + recommendation provider descriptors** (additive). New `StatisticsProviderDescriptor` / `RecommendationProviderDescriptor` + `StatisticsEntry` / `RecommendationEntry` types. Companion `register*Provider` + `getRegistered*Providers` methods mirror the existing widget / context / shelf-renderer pattern. Statistics providers expose key/value entries with optional grouping; recommendation providers rank appids with an optional reason string.
 - **Settings snapshot + environment probe** (additive). `getSettingsSnapshot()` returns a `PublicSettingsSnapshot` (top-level toggles + `integrationsEnabled` + `featureToggles` + `activeProfileName`); `subscribeSettingsSnapshot(cb)` subscribes to diffs. `getEnvironment()` returns `{ pluginVersion, apiVersion, locale, isGamepadUi }`.
 - **Lifecycle helpers exported from the npm package** ([`api/src/index.ts`](src/index.ts)). `onReady(cb: (api) => void): Unsubscribe` fires once when DS is ready (or on next microtask if already loaded). `onTeardown(cb: () => void): Unsubscribe` fires whenever the host unloads. Both wrap the existing `deck-shelves:ready` / `deck-shelves:teardown` window events with `addEventListener` cleanup so consumers don't have to wire them manually.
@@ -53,8 +66,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - pnpm-based tooling: ESLint (bug-catcher rules), Vitest, and a `tsup` dual
  ESM + CJS + `.d.ts` build.
 - GitHub Actions: `ci.yml` (typecheck/lint/test/build/pack), `release.yml`
- (npm publish with provenance + GitHub Release), `bump.yml` (PR-title-driven
- version bump), and `pr-title.yml`.
+ (npm publish with provenance + GitHub Release), `bump.yml` (PR-title-driven version bump), and `pr-title.yml`.
 - Project docs: `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`,
  PR template, and issue templates.
 
