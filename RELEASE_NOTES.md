@@ -5,9 +5,12 @@ the GitHub Release body at tag time.
 
 ## [Unreleased]
 
+- **Discover what Deck Shelves ships.** New read-only `listTriggerCatalog()`, `listShelfTemplates()` and `listShortcuts()` let your plugin enumerate the trigger kinds (with categories + whether each inverts), shelf templates and gamepad shortcuts Deck Shelves provides, so you can build on them. Additive; feature-detect until it ships in a tagged release.
+- **Know the host OS.** `getEnvironment().os` now reports the operating system (`"SteamOS"` / `"Windows"` / `"macOS"` / `"Linux"`, best-effort) so integrations can adapt per platform. Additive.
+
 ## [4.0.2] - 2026-07-05
 
-- **Register your own export / import formats.** New `registerExportHandler` / `registerImportHandler` let your plugin add "Export to format X" / "Import from format Y" for Deck Shelves data (shelves, smart shelves, saved filters). You translate between the host's snapshot JSON and your own format; the transfer stays lossless. Additive — no version bump; feature-detect until it ships in a tagged release.
+- **Register your own export / import formats.** New `registerExportHandler` / `registerImportHandler` let your plugin add "Export to format X" / "Import from format Y" for Deck Shelves data (shelves, smart shelves, saved filters). You translate between the host's snapshot JSON and your own format; the transfer stays lossless. Additive; feature-detect until it ships in a tagged release.
 
 ## [4.0.1] - 2026-06-22
 
@@ -16,7 +19,7 @@ the GitHub Release body at tag time.
 
 ## [4.0.0] - 2026-06-22
 
-- **Profiles + integrations: new getters on the API.** Plugins can read the user's saved profile list and currently-active profile (`getProfiles()`, `getActiveProfile()`, `subscribeProfiles(cb)`), plus the list of integrations Deck Shelves detects (`getIntegrations()`, `subscribeIntegrations(cb)`). Useful when your plugin needs to adapt to whether TabMaster / UnifiDeck / Non-Steam Badges is present, or react to a profile switch. Additive — no version bump.
+- **Profiles + integrations: new getters on the API.** Plugins can read the user's saved profile list and currently-active profile (`getProfiles()`, `getActiveProfile()`, `subscribeProfiles(cb)`), plus the list of integrations Deck Shelves detects (`getIntegrations()`, `subscribeIntegrations(cb)`). Useful when your plugin needs to adapt to whether TabMaster / UnifiDeck / Non-Steam Badges is present, or react to a profile switch. Additive.
 - **Statistics + recommendation provider descriptors.** New `registerStatisticsProvider` / `registerRecommendationProvider` registration types for plugins that want to surface playtime stats, library breakdowns, or "what to play next" suggestions. Host UI consumes them in a later release.
 - **Settings snapshot + environment probe.** `getSettingsSnapshot()` returns the top-level toggles + feature-flag map + active-profile name. `getEnvironment()` returns `{ pluginVersion, apiVersion, locale, isGamepadUi }` so your plugin can adapt without reaching into private state.
 - **`onReady` / `onTeardown` lifecycle helpers exported from the npm package.** Subscribe with one call; the helpers wrap the existing `deck-shelves:ready` / `deck-shelves:teardown` events with proper `removeEventListener` cleanup.

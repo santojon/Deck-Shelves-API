@@ -92,7 +92,7 @@ export interface PublicSavedSmartFilter {
 export interface PublicTriggerKind {
   /** Rule kind id, e.g. "battery", "weekend", "gameRunning". */
   kind: string;
-  /** Category id: "time" | "session" | "power" | "connectivity" | "display" | "perf". */
+  /** Category id: "time" | "session" | "power" | "connectivity" | "display" | "perf" | "peripherals". */
   category: string;
   /** i18n key for the category label. */
   categoryTitleKey: string;
@@ -167,6 +167,10 @@ export interface EnvironmentInfo {
   apiVersion: number;
   locale: string;
   isGamepadUi: boolean;
+  /** Friendly host OS — "SteamOS" | "Windows" | "macOS" | "Linux" — best-effort
+   *  from the user agent; undefined if it can't be determined. Lets integrations
+   *  branch per platform. Additive (optional), so no apiVersion bump. */
+  os?: string;
 }
 
 /** Detected state for a third-party integration DS knows about. */

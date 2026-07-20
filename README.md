@@ -106,7 +106,8 @@ The returned `Unsubscribe` works regardless of which case applied.
 | Settings snapshot      | —                                   | `getSettingsSnapshot`     | `subscribeSettingsSnapshot`|
 | Focus tracking         | —                                   | `getFocusedCard`          | `subscribeFocusedCard`     |
 | Asset URLs             | `getAssetUrls(appid, type)`         | —                         | —                          |
-| Environment probes     | `getEnvironment` / `hasTabMaster`   | —                         | —                          |
+| Built-in catalogues    | `listTriggerCatalog` / `listShelfTemplates` / `listShortcuts` | — | —      |
+| Environment probes     | `getEnvironment` (incl. `.os`) / `hasTabMaster` | —             | —                          |
 | Lifecycle helpers      | `onReady(cb)` / `onTeardown(cb)` (package exports) | —          | —                          |
 
 Full surface in [`src/types.ts`](src/types.ts) → `DeckShelvesPublicAPI`.
