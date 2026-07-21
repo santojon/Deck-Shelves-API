@@ -57,14 +57,14 @@ export interface PublicShelf {
 }
 
 export type PublicShelfSource =
-  | { type: "filter"; filter?: unknown }
+  | { type: "collection"; collectionId: string }
   | { type: "tab"; tab: string }
-  | { type: "collection"; collection: string }
+  | { type: "filter"; filter?: { sort?: string; group?: PublicFilterGroup } }
+  | { type: "external"; sourceId: string }
+  | { type: "smart"; mode: string; smartParams?: Record<string, unknown> }
   | { type: "wishlist" }
   | { type: "store" }
-  | { type: "smart"; mode: string; smartParams?: Record<string, unknown> }
-  | { type: "composite"; combine: "union" | "intersection"; sources: PublicShelfSource[] }
-  | { type: "external"; sourceId: string };
+  | { type: "composite"; combine: "union" | "intersection"; sources: PublicShelfSource[] };
 
 export interface PublicSmartShelf {
   id: string;
@@ -73,6 +73,7 @@ export interface PublicSmartShelf {
   enabled: boolean;
   hidden: boolean;
   limit?: number;
+  sort?: string | string[];
   smartParams?: Record<string, unknown>;
 }
 
@@ -80,12 +81,21 @@ export interface PublicSavedFilter {
   id: string;
   name: string;
   description?: string;
+  group?: PublicFilterGroup;
 }
 
 export interface PublicSavedSmartFilter {
   id: string;
   name: string;
   description?: string;
+  mode?: string;
+  smartParams?: Record<string, number>;
+  filterGroup?: PublicFilterGroup;
+  sort?: string | ReadonlyArray<string>;
+  sortReverse?: boolean | ReadonlyArray<boolean>;
+  limit?: number;
+  visibleHours?: ReadonlyArray<number>;
+  visibleDaysOfWeek?: ReadonlyArray<number>;
 }
 
 /** A built-in visibility / profile-trigger rule kind (see `listTriggerCatalog`). */
@@ -206,8 +216,8 @@ export interface SmartShelfSourceDescriptor {
   version?: number;
   category?: string;
   paramMeta?: Readonly<Record<string, { label: string; min: number; max: number; step: number; unit?: string; }>>;
-  resolve(apps: ReadonlyArray<PublicAppMeta>, limit: number, params?: Record<string, unknown>): number[];
-  defaultParams?: Record<string, unknown>;
+  resolve(limit: number, params?: Readonly<Record<string, number>>): number[] | Promise<number[]>;
+  defaultParams?: Readonly<Record<string, number>>;
 }
 
 export interface ExternalFilterTypeDescriptor {
@@ -244,6 +254,21 @@ export interface ExternalImportTypeDescriptor {
   runImport?(): void | Promise<void>;
 }
 
+// A filter tree: a group combines its items with AND / OR; each item names a
+// registered filter type, may be inverted, and carries type-specific params.
+// The canonical public shape for `filterGroup` fields (typed `unknown` on the
+// descriptors above until a future major tightens them without a breaking change).
+export interface PublicFilterItem {
+  type: string;
+  inverted?: boolean;
+  params?: Readonly<Record<string, unknown>>;
+}
+
+export interface PublicFilterGroup {
+  mode: "and" | "or";
+  items: ReadonlyArray<PublicFilterItem>;
+}
+
 export interface ExternalSavedFilterDescriptor {
   id: string;
   name: string;
@@ -275,6 +300,22 @@ export interface ImportHandlerDescriptor {
   fileExtension?: string;
   icon?: unknown;
   import(raw: string): string | Promise<string>;
+}
+
+// Normalized result of parsing an import file into shelves / smart shelves,
+// before they are materialized. Returned by an import flow so the host can
+// create the corresponding shelves.
+export interface ParsedImport {
+  shelves?: Array<{
+    title: string;
+    source: { type: "external"; sourceId: string };
+    limit?: number;
+  }>;
+  smartShelves?: Array<{
+    title: string;
+    mode: string;
+    limit?: number;
+  }>;
 }
 
 // ──────────────────────────────────────────────────────────────────────────

@@ -5,6 +5,18 @@ the GitHub Release body at tag time.
 
 ## [Unreleased]
 
+- **Shared filter-tree types.** `PublicFilterGroup` / `PublicFilterItem` (and
+  `ParsedImport`) are now exported, so you describe a saved filter's structure
+  with the same types the host uses instead of hand-rolling your own. The
+  saved-filter getters also gained typed fields they already returned
+  (`PublicSavedFilter.group`, the full `PublicSavedSmartFilter`, and
+  `PublicSmartShelf.sort`). Additive.
+- **Types corrected to match the host.** A shelf's collection source is
+  `{ type: "collection", collectionId }` and a smart-shelf source resolver is
+  `resolve(limit, params?)` — the published types now match what the host has
+  always emitted and called, so your editor and the runtime finally agree. If
+  you coded against the previous (inaccurate) shapes, update those two spots.
+
 ## [4.0.3] - 2026-07-20
 
 - **Discover what Deck Shelves ships.** New read-only `listTriggerCatalog()`, `listShelfTemplates()` and `listShortcuts()` let your plugin enumerate the trigger kinds (with categories + whether each inverts), shelf templates and gamepad shortcuts Deck Shelves provides, so you can build on them. Additive; feature-detect until it ships in a tagged release.
