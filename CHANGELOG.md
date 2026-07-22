@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Canonical filter-tree types `PublicFilterGroup` / `PublicFilterItem` (a group
+  combines items with `and` / `or`; each item names a filter type, may be
+  `inverted`, and carries `params`) and `ParsedImport` (the normalized result of
+  parsing an import file into shelves / smart shelves). These are now exported so
+  consumers share one definition instead of re-declaring their own.
+- `PublicSavedFilter.group` and the full `PublicSavedSmartFilter` projection
+  (`mode`, `smartParams`, `filterGroup`, `sort`, `sortReverse`, `limit`,
+  `visibleHours`, `visibleDaysOfWeek`) — the saved-filter getters already return
+  these fields; the types now describe them. `PublicSmartShelf.sort` added for
+  the same reason. All additive (optional fields).
+
+### Changed
+
+- **Contract now matches what the host actually emits / calls** (corrects types
+  that never reflected the runtime — code that relied on the old shapes was
+  already broken at run time):
+  - `PublicShelfSource` collection variant is `{ type: "collection"; collectionId: string }`
+    (was `collection`), and the `filter` variant is typed
+    `{ sort?: string; group?: PublicFilterGroup }` (was `unknown`).
+  - `SmartShelfSourceDescriptor.resolve` is `(limit, params?) => number[] | Promise<number[]>`
+    (was `(apps, limit, params) => number[]`); `defaultParams` /  the `params`
+    argument are `Record<string, number>`.
+
 ## [4.0.3] - 2026-07-20
 
 ### Added
