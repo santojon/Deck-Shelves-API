@@ -5,6 +5,8 @@ the GitHub Release body at tag time.
 
 ## [Unreleased]
 
+## [4.0.4] - 2026-07-22
+
 - **Shared filter-tree types.** `PublicFilterGroup` / `PublicFilterItem` (and
   `ParsedImport`) are now exported, so you describe a saved filter's structure
   with the same types the host uses instead of hand-rolling your own. The
