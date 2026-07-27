@@ -2,6 +2,10 @@
 
 <div align="center">
 
+<p>
+  <img src="assets/logo.svg" alt="@deck-shelves/api" width="352">
+</p>
+
 [![CI](https://github.com/santojon/Deck-Shelves-API/actions/workflows/ci.yml/badge.svg)](https://github.com/santojon/Deck-Shelves-API/actions/workflows/ci.yml)
 [![Release](https://github.com/santojon/Deck-Shelves-API/actions/workflows/release.yml/badge.svg)](https://github.com/santojon/Deck-Shelves-API/actions/workflows/release.yml)
 [![npm version](https://img.shields.io/npm/v/@deck-shelves/api?logo=npm&color=cb3837)](https://www.npmjs.com/package/@deck-shelves/api)
