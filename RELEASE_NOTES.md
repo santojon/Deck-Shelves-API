@@ -5,6 +5,12 @@ the GitHub Release body at tag time.
 
 ## [Unreleased]
 
+- **Security:** bumped `postcss` to 8.5.26, `js-yaml` to 4.3.1, and
+  `brace-expansion` to 1.1.18 / 5.0.9 (resolves 5 Dependabot alerts: a
+  `postcss` source-map path-traversal issue and DoS issues in `js-yaml` and
+  `brace-expansion`). All dev-only transitive dependencies — no impact on the
+  published API.
+
 ## [4.0.4] - 2026-07-22
 
 - **Shared filter-tree types.** `PublicFilterGroup` / `PublicFilterItem` (and

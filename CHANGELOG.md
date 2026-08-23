@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- Bumped transitive dev-dependencies flagged by Dependabot: `postcss` to 8.5.26
+  (path-traversal / arbitrary `.map` file disclosure via `sourceMappingURL`,
+  GHSA-6g55-p6wh-862q and its incomplete-fix follow-up), `js-yaml` to 4.3.1
+  (quadratic CPU consumption in `!!omap` resolution, CVE-2026-59870), and
+  `brace-expansion` to 1.1.18 / 5.0.9 (exponential-time expansion DoS). All
+  pulled in by the build/lint toolchain (`tsup`, `eslint`) — dev-only, no
+  impact on the published package.
+
 ## [4.0.4] - 2026-07-22
 
 ### Added
