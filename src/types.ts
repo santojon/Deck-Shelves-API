@@ -220,6 +220,55 @@ export interface SmartShelfSourceDescriptor {
   defaultParams?: Readonly<Record<string, number>>;
 }
 
+/** Snapshot of Deck Shelves UI state handed to a context-aware source's
+ *  `resolve()`. Opposite direction from {@link ContextProviderDescriptor} —
+ *  that's a plugin providing context signals TO Deck Shelves for profile
+ *  triggers / visibility rules; this is Deck Shelves providing its own UI
+ *  context TO a shelf source resolving its contents.
+ *
+ *  Intentionally minimal and stable: no React/SteamUI objects, no internal
+ *  component instances, no mutable store references — a plain data
+ *  snapshot, extended additively as new fields are needed. */
+export interface ShelfResolveContext {
+  /** AppID currently focused by the user, or null when there is no valid
+   *  focused game. */
+  focusedAppid: number | null;
+  /** Shelf currently providing the focus, or null when focus is outside
+   *  every Deck Shelves shelf. */
+  shelfId: string | null;
+}
+
+/** A regular shelf source whose `resolve()` also receives the current
+ *  {@link ShelfResolveContext} and an `AbortSignal` — for sources whose
+ *  results depend on transient UI state (e.g. "similar to the focused
+ *  game") rather than being static or library-wide. Deck Shelves owns
+ *  observing context changes, invalidating affected shelves, and
+ *  debouncing/cancelling in-flight resolutions; the source itself never
+ *  needs to subscribe to focus changes (`subscribeFocusedCard`) or manage
+ *  its own refresh timing. Register with `registerContextAwareShelfSource` —
+ *  a distinct registry from `registerShelfSource`/`getRegisteredSources()`,
+ *  queried separately via `getRegisteredContextAwareShelfSources()`. */
+export interface ContextAwareShelfSourceDescriptor extends ExternalShelfSourceDescriptor {
+  context?: {
+    /** Whether this source needs a focused appid to produce results. When
+     *  true, Deck Shelves may skip calling `resolve` entirely while
+     *  nothing is focused instead of invoking it with `focusedAppid: null`. */
+    requiresFocusedApp?: boolean;
+  };
+  /** `params`/`context`/`signal` are all optional past `limit`, so this
+   *  stays call-compatible with the base `resolve(limit)` contract.
+   *  `signal` aborts when a newer request for the same source + shelf
+   *  supersedes this one (e.g. focus moved to a different game) — a
+   *  well-behaved source should stop work and may still return a
+   *  partial/empty result once the signal has fired. */
+  resolve(
+    limit: number,
+    params?: Record<string, unknown>,
+    context?: ShelfResolveContext,
+    signal?: AbortSignal,
+  ): Promise<number[]> | number[];
+}
+
 export interface ExternalFilterTypeDescriptor {
   id: string;
   label?: string;
@@ -470,6 +519,9 @@ export interface DeckShelvesPublicAPI {
   // --- Registries -------------------------------------------------------
   registerShelfSource(d: ExternalShelfSourceDescriptor): Unsubscribe;
   registerSmartShelfSource(d: SmartShelfSourceDescriptor): Unsubscribe;
+  // Context-aware shelf sources (additive — no version bump).
+  registerContextAwareShelfSource(d: ContextAwareShelfSourceDescriptor): Unsubscribe;
+  getRegisteredContextAwareShelfSources(): ReadonlyArray<ContextAwareShelfSourceDescriptor>;
   registerFilterType(d: ExternalFilterTypeDescriptor): Unsubscribe;
   registerSortOption(d: ExternalSortOptionDescriptor): Unsubscribe;
   registerImportType(d: ExternalImportTypeDescriptor): Unsubscribe;
@@ -504,6 +556,13 @@ export interface DeckShelvesPublicAPI {
   subscribeShelves(cb: (shelves: ReadonlyArray<PublicShelf>) => void): Unsubscribe;
   subscribeSmartShelves(cb: (shelves: ReadonlyArray<PublicSmartShelf>) => void): Unsubscribe;
   subscribeSavedFilters(cb: (filters: ReadonlyArray<PublicSavedFilter>) => void): Unsubscribe;
+  /** Force a shelf to re-resolve now (a brief visual cue plays on it, same
+   *  as the user's own manual-refresh button). Not required for a
+   *  context-aware source — focus-driven invalidation already handles that
+   *  automatically — this is for a plugin-driven reason to refresh: new
+   *  data became available, a provider was updated, etc. No-op for an
+   *  unknown `shelfId`. */
+  refreshShelf(shelfId: string): void;
 
   // --- Focus tracking (new) ---------------------------------------------
   /** Returns the currently focused card or null when focus is elsewhere. */

@@ -7,7 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [4.0.5] - 2026-08-23
+### Added
+
+- **Context-aware shelf sources.** New `ShelfResolveContext` (`focusedAppid`,
+  `shelfId`, both nullable) and `ContextAwareShelfSourceDescriptor` (extends
+  `ExternalShelfSourceDescriptor`; a `context.requiresFocusedApp` hint plus a
+  widened `resolve(limit, params?, context?, signal?)`), registered via new
+  `registerContextAwareShelfSource` / `getRegisteredContextAwareShelfSources`
+  on `DeckShelvesPublicAPI`. Lets an external source's contents depend on
+  transient UI state — e.g. "similar to the currently focused game" — without
+  the source itself subscribing to `subscribeFocusedCard` or managing its own
+  refresh timing; the host owns observing focus changes, invalidating
+  affected shelves, and cancelling superseded in-flight resolutions via the
+  `AbortSignal` argument. Additive — no version bump; the widened `resolve`
+  signature stays call-compatible with the existing `resolve(limit)`
+  contract, so no existing source needs to change ([`src/types.ts`](src/types.ts)).
+- **`refreshShelf(shelfId)`** on `DeckShelvesPublicAPI` — force a shelf to
+  re-resolve now (the same visual cue as the user's own manual-refresh
+  button). Not needed for a context-aware source itself (focus-driven
+  invalidation already handles that); useful when a plugin has its own
+  reason to refresh — new data available, a provider updated, etc. No-op for
+  an unknown `shelfId`. Additive — no version bump ([`src/types.ts`](src/types.ts)).
 
 ### Security
 

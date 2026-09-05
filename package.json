@@ -74,7 +74,7 @@
     }
   },
   "devDependencies": {
-    "@typescript-eslint/parser": "^8.67.0",
+    "@typescript-eslint/parser": "^8.68.0",
     "eslint": "^9.39.5",
     "jsdom": "^25.0.1",
     "tsup": "^8.5.1",

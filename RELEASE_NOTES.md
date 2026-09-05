@@ -5,6 +5,16 @@ the GitHub Release body at tag time.
 
 ## [Unreleased]
 
+- **Context-aware shelf sources.** Build a shelf source whose results depend
+  on what the user is currently looking at — like "similar to the focused
+  game" — without wiring up your own focus tracking or refresh timing.
+  Register with the new `registerContextAwareShelfSource`; Deck Shelves calls
+  your `resolve()` with the focused appid, invalidates it automatically when
+  focus moves, and cancels stale in-flight work via an `AbortSignal`. Fully
+  additive — every existing source keeps working exactly as it does today.
+- **`refreshShelf(shelfId)`.** Force one shelf to re-resolve now, with the
+  same brief visual cue the user's own manual-refresh button shows.
+
 ## [4.0.5] - 2026-08-23
 
 - **Security:** bumped `postcss` to 8.5.26, `js-yaml` to 4.3.1, and
