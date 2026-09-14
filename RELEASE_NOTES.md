@@ -5,6 +5,8 @@ the GitHub Release body at tag time.
 
 ## [Unreleased]
 
+## [4.1.0] - 2026-09-14
+
 - **Context-aware shelf sources.** Build a shelf source whose results depend
   on what the user is currently looking at — like "similar to the focused
   game" — without wiring up your own focus tracking or refresh timing.
