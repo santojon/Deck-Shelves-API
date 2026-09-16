@@ -91,7 +91,13 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          token: ${{ github.token }}
+          # A release created with the default github.token never fires the
+          # `release: published` event for other workflows (GitHub's
+          # anti-recursion rule) — post-release.yml's Discord/Reddit step
+          # would silently never run. SUBMIT_TOKEN is a real PAT, so the
+          # event fires normally; same pattern the main repo's release.yml
+          # already uses.
+          token: ${{ secrets.SUBMIT_TOKEN || github.token }}
           tag_name: ${{ steps.tag.outputs.tag }}
           name: "@deck-shelves/api ${{ steps.tag.outputs.tag }}"
           body: ${{ steps.notes.outputs.body }}
