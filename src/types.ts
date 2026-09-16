@@ -134,6 +134,17 @@ export interface PublicShortcut {
   combo: string | null;
 }
 
+/** A built-in keyboard shortcut — the independent keyboard slot every
+ *  gamepad shortcut also has (see `listKeyboardShortcuts`). Unlike gamepad
+ *  shortcuts, every action defaults to unset: opting a key in is explicit. */
+export interface PublicKeyboardShortcut {
+  /** Action id — the same set `PublicShortcut.action` uses. */
+  action: string;
+  /** Current user-configured combo, e.g. "KeyF", "ControlLeft+KeyF",
+   *  "KeyS+KeyS" (double-tap); null if unbound (the default). */
+  combo: string | null;
+}
+
 /** A user-saved configuration profile. The internal snapshot payload is
  *  intentionally omitted from the public projection — consumers receive
  *  identity + metadata only. */
@@ -547,6 +558,8 @@ export interface DeckShelvesPublicAPI {
   listShelfTemplates(): ReadonlyArray<PublicShelfTemplate>;
   /** Every built-in gamepad shortcut with its default + current combo. */
   listShortcuts(): ReadonlyArray<PublicShortcut>;
+  /** Every built-in action's independent keyboard shortcut, if bound. */
+  listKeyboardShortcuts(): ReadonlyArray<PublicKeyboardShortcut>;
 
   // --- Snapshots + subscriptions ----------------------------------------
   getShelves(): ReadonlyArray<PublicShelf>;

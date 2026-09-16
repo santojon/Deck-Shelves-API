@@ -133,7 +133,7 @@ api.registerContextAwareShelfSource({
 | Focus tracking         | —                                   | `getFocusedCard`          | `subscribeFocusedCard`     |
 | Manual shelf refresh   | `refreshShelf(shelfId)`             | —                         | —                          |
 | Asset URLs             | `getAssetUrls(appid, type)`         | —                         | —                          |
-| Built-in catalogues    | `listTriggerCatalog` / `listShelfTemplates` / `listShortcuts` | — | —      |
+| Built-in catalogues    | `listTriggerCatalog` / `listShelfTemplates` / `listShortcuts` / `listKeyboardShortcuts` | — | — |
 | Environment probes     | `getEnvironment` (incl. `.os`) / `hasTabMaster` | —             | —                          |
 | Lifecycle helpers      | `onReady(cb)` / `onTeardown(cb)` (package exports) | —          | —                          |
 
