@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Keyboard shortcut catalogue.** New `PublicKeyboardShortcut` (`action`,
+  `combo`) and `listKeyboardShortcuts()` on `DeckShelvesPublicAPI`, mirroring
+  the existing `PublicShortcut` / `listShortcuts()` for the independent
+  keyboard slot every gamepad shortcut now also has. Unlike gamepad
+  shortcuts, every action defaults to unset — `combo` is `null` until the
+  user explicitly binds one.
+
 ## [4.1.0] - 2026-09-14
 
 ### Added
