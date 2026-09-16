@@ -5,6 +5,8 @@ the GitHub Release body at tag time.
 
 ## [Unreleased]
 
+## [4.1.1] - 2026-09-16
+
 - **Keyboard shortcut catalogue.** `listKeyboardShortcuts()` reports each
   action's keyboard combo, alongside the existing `listShortcuts()` for
   gamepad combos. Keyboard bindings are a separate, independent slot from
